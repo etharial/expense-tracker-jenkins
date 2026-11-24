@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { calculateTotalCents, categories, createExpense } from './expenses.js';
 import './styles.css';
