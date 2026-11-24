@@ -4,6 +4,11 @@ pipeline {
     options {
         timestamps()
         disableConcurrentBuilds()
+        skipDefaultCheckout(true)
+    }
+
+    triggers {
+        pollSCM('H/5 * * * *')
     }
 
     stages {
@@ -13,20 +18,21 @@ pipeline {
             }
         }
 
-        stage('Install dependencies') {
+        stage('Install and Test') {
             steps {
                 sh 'node --version'
                 sh 'npm ci'
+                sh 'npm test'
             }
         }
 
-        stage('Test') {
+        stage('Coverage') {
             steps {
                 sh 'npm run coverage'
             }
         }
 
-        stage('SonarQube analysis') {
+        stage('SonarQube Analysis') {
             when {
                 branch 'main'
             }
@@ -42,7 +48,7 @@ pipeline {
             }
         }
 
-        stage('Quality gate') {
+        stage('Quality Gate') {
             when {
                 branch 'main'
             }
@@ -65,7 +71,7 @@ pipeline {
             }
         }
 
-        stage('Archive accepted artifact') {
+        stage('Archive Artifact') {
             when {
                 branch 'main'
             }

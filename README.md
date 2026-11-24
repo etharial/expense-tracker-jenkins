@@ -6,9 +6,9 @@ A small React expense tracker built to demonstrate branch-aware Jenkins CI and a
 
 | Branch | Purpose | CI stages |
 | --- | --- | --- |
-| `main` | Stable, accepted release | Test, SonarQube analysis, quality gate, build, archive |
-| `develop` | Integration branch | Test, build |
-| `feature/<name>` | Individual feature work, e.g. `feature/category-filter` | Test |
+| `main` | Stable, accepted release | Checkout, install and test, coverage, SonarQube analysis, quality gate, build, archive |
+| `develop` | Integration branch | Checkout, install and test, coverage, build |
+| `feature/<name>` | Individual feature work, e.g. `feature/category-filter` | Checkout, install and test, coverage |
 
 Use pull requests from `feature/*` to `develop`, then from `develop` to `main`. Only a successful `main` pipeline archives `release-bundle.tar.gz`; the CD job copies that artifact from the chosen `main` build.
 
@@ -18,12 +18,12 @@ After creating the GitHub repository, initialize and push the branches (replace 
 git init -b main
 git add .
 git commit -m "Initial expense tracker"
-git remote add origin https://github.com/<your-user>/expense-tracker-jenkins.git
+git remote add origin https://github.com/etharial/expense-tracker-jenkins.git
 git push -u origin main
 git switch -c develop
 git push -u origin develop
-git switch -c feature/expense-form
-git push -u origin feature/expense-form
+git switch -c feature/category-filter
+git push -u origin feature/category-filter
 ```
 
 ## Run locally
@@ -42,12 +42,13 @@ The expense helpers validate descriptions, categories, dates, and positive amoun
 
 ## Jenkins CI setup
 
-1. Push this repository to GitHub and create the branches above.
-2. Create a Jenkins **Multibranch Pipeline** pointing at the repository, with branch discovery enabled. Set its script path to `Jenkinsfile`.
-3. Ensure its build agent has Node.js/npm and Git. The `main` branch runs SonarQube analysis and the quality gate; configure the Jenkins SonarQube Scanner tool as **`SonarScanner`** and the SonarQube server installation as **`SonarQube`**. Install/configure the SonarQube Scanner and Pipeline plugins.
-4. `sonar-project.properties` configures the project key and LCOV coverage path. Configure a SonarQube webhook to Jenkins for `waitForQualityGate`.
+1. Push `main`, `develop`, and at least one `feature/*` branch to GitHub.
+2. Install the **GitHub Branch Source** plugin. In Jenkins, create a **Multibranch Pipeline** and add a GitHub branch source for `https://github.com/etharial/expense-tracker-jenkins`. Configure GitHub credentials if the repository requires them, set the source's branch-discovery behavior to discover **all branches**, and set the script path to `Jenkinsfile`. Do not filter out `main`, `develop`, or `feature/*`.
+3. Configure the multibranch job to scan periodically (for example, every 5 minutes) so newly created branches are discovered. The Jenkinsfile also polls each discovered branch for changes every 5 minutes. For immediate push triggering, configure a GitHub repository webhook at `https://<your-jenkins-host>/github-webhook/` for push events, and ensure the Jenkins host is reachable from GitHub.
+4. Ensure the build agent has Git, Node.js 22.12+ (or 20.19+), and npm. Install/configure the SonarQube Scanner and Pipeline plugins; configure the Jenkins scanner tool as **`SonarScanner`** and the server installation as **`SonarQube`**.
+5. `sonar-project.properties` configures the project key and LCOV coverage path. Configure a SonarQube webhook to Jenkins for `waitForQualityGate`.
 
-The pipeline uses `npm ci` and `npm run coverage` for all discovered branches. It runs `npm run build` only for `develop` and `main`. An artifact is archived only after the `main` analysis and quality gate succeed.
+The branch pipeline runs the stages shown in the table: a failing `npm test` or coverage command stops that branch's pipeline. On `main`, a failed SonarQube quality gate aborts the pipeline before build and archive. Only `main` archives `release-bundle.tar.gz`.
 
 ## Jenkins CD setup
 
