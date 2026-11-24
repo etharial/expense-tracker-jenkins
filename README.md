@@ -4,10 +4,6 @@ A small React expense tracker built to demonstrate branch-aware Jenkins CI and a
 
 ## GitHub repository and branches
 
-Suggested GitHub repository name: **`expense-tracker-jenkins`**.
-
-Create these branches in the repository:
-
 | Branch | Purpose | CI stages |
 | --- | --- | --- |
 | `main` | Stable, accepted release | Test, SonarQube analysis, quality gate, build, archive |
