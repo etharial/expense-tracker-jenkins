@@ -1,6 +1,11 @@
 import React from 'react';
 import { useState } from 'react';
-import { calculateTotalCents, categories, createExpense } from './expenses.js';
+import {
+  calculateTotalCents,
+  categories,
+  createExpense,
+  filterExpensesByCategory,
+} from './expenses.js';
 import './styles.css';
 
 function todayAsLocalDate() {
@@ -22,7 +27,9 @@ export default function App() {
   const [expenses, setExpenses] = useState([]);
   const [date, setDate] = useState(todayAsLocalDate);
   const [error, setError] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const totalCents = calculateTotalCents(expenses);
+  const visibleExpenses = filterExpensesByCategory(expenses, selectedCategory);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -108,12 +115,27 @@ export default function App() {
               <p className="eyebrow">YOUR ACTIVITY</p>
               <h2 id="expense-list-title">Recent expenses</h2>
             </div>
+            <label className="filter-control">
+              Filter by category
+              <select
+                aria-label="Filter expenses by category"
+                value={selectedCategory}
+                onChange={(event) => setSelectedCategory(event.target.value)}
+              >
+                <option value="All">All categories</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </label>
           </div>
           {expenses.length === 0 ? (
             <p className="empty-state">No expenses yet. Add one to get started.</p>
+          ) : visibleExpenses.length === 0 ? (
+            <p className="empty-state">No expenses in this category.</p>
           ) : (
             <ul>
-              {expenses.map((expense) => (
+              {visibleExpenses.map((expense) => (
                 <li className="expense-item" key={expense.id}>
                   <div className="expense-details">
                     <strong>{expense.description}</strong>

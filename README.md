@@ -1,6 +1,6 @@
 # Pocket Ledger — Expense Tracker
 
-A small React expense tracker built to demonstrate branch-aware Jenkins CI and a separate, build-number-driven CD job. Expenses are held in memory and reset when the page is refreshed.
+A small React expense tracker built to demonstrate branch-aware Jenkins CI and a separate, build-number-driven CD job. Add expenses, filter the list by category, and see the running total. Expenses are held in memory and reset when the page is refreshed.
 
 ## GitHub repository and branches
 

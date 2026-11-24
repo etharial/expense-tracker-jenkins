@@ -42,4 +42,11 @@ export function calculateTotalCents(expenses) {
   return expenses.reduce((total, expense) => total + expense.amountCents, 0);
 }
 
+export function filterExpensesByCategory(expenses, category) {
+  if (category === 'All') {
+    return expenses;
+  }
+  return expenses.filter((expense) => expense.category === category);
+}
+
 export { categories };

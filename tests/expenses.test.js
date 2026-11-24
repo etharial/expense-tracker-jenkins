@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { calculateTotalCents, createExpense } from '../src/expenses.js';
+import {
+  calculateTotalCents,
+  createExpense,
+  filterExpensesByCategory,
+} from '../src/expenses.js';
 
 describe('createExpense', () => {
   it('trims descriptions and converts decimal amounts to exact cents', () => {
@@ -55,5 +59,25 @@ describe('calculateTotalCents', () => {
       { amountCents: 20 },
       { amountCents: 999 },
     ])).toBe(1029);
+  });
+});
+
+describe('filterExpensesByCategory', () => {
+  const expenses = [
+    { description: 'Lunch', category: 'Food' },
+    { description: 'Bus fare', category: 'Transport' },
+    { description: 'Coffee', category: 'Food' },
+  ];
+
+  it('returns all expenses for the All selection', () => {
+    expect(filterExpensesByCategory(expenses, 'All')).toEqual(expenses);
+  });
+
+  it('returns only matching expenses and none for an empty category', () => {
+    expect(filterExpensesByCategory(expenses, 'Food')).toEqual([
+      expenses[0],
+      expenses[2],
+    ]);
+    expect(filterExpensesByCategory(expenses, 'Housing')).toEqual([]);
   });
 });
