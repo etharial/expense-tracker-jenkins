@@ -1,0 +1,259 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #1c2925;
+  background: #f5f7f4;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 86% 4%, rgb(206 230 215 / 60%), transparent 29rem),
+    #f5f7f4;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.page-shell {
+  width: min(1050px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 72px 0;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: #638174;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2 {
+  font-family: Manrope, sans-serif;
+}
+
+h1 {
+  margin-bottom: 10px;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  letter-spacing: -0.07em;
+  line-height: 1.08;
+}
+
+.intro {
+  margin-bottom: 0;
+  color: #66736d;
+}
+
+.total-card {
+  display: grid;
+  min-width: 210px;
+  gap: 5px;
+  padding: 20px 24px;
+  border: 1px solid #dfe8e1;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 75%);
+  box-shadow: 0 12px 35px rgb(34 66 48 / 6%);
+}
+
+.total-card span {
+  color: #718078;
+  font-size: 0.85rem;
+}
+
+.total-card strong {
+  font-family: Manrope, sans-serif;
+  font-size: 1.85rem;
+  letter-spacing: -0.05em;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.expense-form,
+.expense-list {
+  padding: 28px;
+  border: 1px solid #e4eae5;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 15px 40px rgb(34 66 48 / 5%);
+}
+
+.expense-form h2,
+.expense-list h2 {
+  margin-bottom: 22px;
+  font-size: 1.25rem;
+  letter-spacing: -0.04em;
+}
+
+.expense-form label {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 17px;
+  color: #485750;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.expense-form input,
+.expense-form select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid #dfe6e0;
+  border-radius: 10px;
+  outline: none;
+  background: #fbfcfb;
+  color: #1c2925;
+}
+
+.expense-form input:focus,
+.expense-form select:focus {
+  border-color: #3b7c5c;
+  box-shadow: 0 0 0 3px rgb(59 124 92 / 13%);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.expense-form button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 3px;
+  border: 0;
+  border-radius: 10px;
+  background: #246746;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.expense-form button:hover {
+  transform: translateY(-1px);
+  background: #1b5639;
+}
+
+.error-message {
+  margin: -4px 0 14px;
+  color: #a73232;
+  font-size: 0.85rem;
+}
+
+.list-heading {
+  display: flex;
+  justify-content: space-between;
+}
+
+.list-heading h2 {
+  margin-bottom: 0;
+}
+
+.empty-state {
+  margin: 28px 0 8px;
+  color: #78857e;
+  text-align: center;
+}
+
+.expense-list ul {
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.expense-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px 0;
+  border-top: 1px solid #edf0ed;
+}
+
+.expense-details {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.expense-details strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expense-details span {
+  color: #78857e;
+  font-size: 0.82rem;
+}
+
+.expense-amount {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .page-shell {
+    padding: 40px 0;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+
+  .total-card {
+    width: 100%;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .page-shell {
+    width: min(100% - 24px, 1050px);
+  }
+
+  .expense-form,
+  .expense-list {
+    padding: 21px;
+  }
+}
