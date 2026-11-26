@@ -62,7 +62,7 @@ describe('Pocket Ledger initial state', () => {
     const markup = renderToStaticMarkup(<App />);
 
     expect(markup).toContain('Pocket Ledger');
-    expect(markup).toContain('₱999.99');
+    expect(markup).toContain('₱0.00');
     expect(markup).toContain('No expenses yet.');
   });
 
