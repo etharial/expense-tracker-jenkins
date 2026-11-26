@@ -17,7 +17,7 @@ https://github.com/etharial/expense-tracker-jenkins
 - Display validation errors and recover from invalid submissions.
 - Display an empty state when no expenses have been recorded.
 
-The application uses USD and stores expenses in memory. Refreshing the page resets the expense list. A database is not required.
+The application uses Philippine pesos (PHP) and stores expenses in memory. Refreshing the page resets the expense list. A database is not required.
 
 ## Technology Stack
 

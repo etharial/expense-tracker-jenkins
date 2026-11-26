@@ -32,7 +32,7 @@ function fillExpense({
     target: { value: description },
   });
 
-  fireEvent.change(screen.getByLabelText('Amount (USD)'), {
+  fireEvent.change(screen.getByLabelText('Amount (PHP)'), {
     target: { value: amount },
   });
 
@@ -62,7 +62,7 @@ describe('Pocket Ledger initial state', () => {
     const markup = renderToStaticMarkup(<App />);
 
     expect(markup).toContain('Pocket Ledger');
-    expect(markup).toContain('$0.00');
+    expect(markup).toContain('₱0.00');
     expect(markup).toContain('No expenses yet.');
   });
 
@@ -78,7 +78,7 @@ describe('Pocket Ledger initial state', () => {
     ).toBe('');
 
     expect(
-      screen.getByLabelText('Amount (USD)').value,
+      screen.getByLabelText('Amount (PHP)').value,
     ).toBe('');
 
     expect(
@@ -121,14 +121,14 @@ describe('Pocket Ledger expense submission', () => {
     const item = within(screen.getByRole('listitem'));
 
     expect(item.getByText('Coffee')).toBeTruthy();
-    expect(item.getByText('$3.50')).toBeTruthy();
+    expect(item.getByText('₱3.50')).toBeTruthy();
 
     expect(
       item.getByText(/Food.*2026-11-24/),
     ).toBeTruthy();
 
     expect(
-      totalCard().getByText('$3.50'),
+      totalCard().getByText('₱3.50'),
     ).toBeTruthy();
 
     expect(
@@ -162,7 +162,7 @@ describe('Pocket Ledger expense submission', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
 
     expect(
-      totalCard().getByText('$5.75'),
+      totalCard().getByText('₱5.75'),
     ).toBeTruthy();
 
     expect(
@@ -203,7 +203,7 @@ describe('Pocket Ledger expense submission', () => {
     ).toBeTruthy();
 
     expect(
-      item.getByText('$45.00'),
+      item.getByText('₱45.00'),
     ).toBeTruthy();
   });
 
@@ -224,7 +224,7 @@ describe('Pocket Ledger expense submission', () => {
     ).toBe('');
 
     expect(
-      screen.getByLabelText('Amount (USD)').value,
+      screen.getByLabelText('Amount (PHP)').value,
     ).toBe('');
 
     expect(
@@ -254,7 +254,7 @@ describe('Pocket Ledger expense submission', () => {
     submitExpense();
 
     expect(
-      totalCard().getByText('$0.30'),
+      totalCard().getByText('₱0.30'),
     ).toBeTruthy();
   });
 });
@@ -279,7 +279,7 @@ describe('Pocket Ledger validation and recovery', () => {
     ).toBeNull();
 
     expect(
-      totalCard().getByText('$0.00'),
+      totalCard().getByText('₱0.00'),
     ).toBeTruthy();
   });
 
@@ -311,7 +311,7 @@ describe('Pocket Ledger validation and recovery', () => {
     ).toBeTruthy();
 
     expect(
-      totalCard().getByText('$5.00'),
+      totalCard().getByText('₱5.00'),
     ).toBeTruthy();
   });
 
@@ -336,7 +336,7 @@ describe('Pocket Ledger validation and recovery', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
 
     expect(
-      totalCard().getByText('$12.00'),
+      totalCard().getByText('₱12.00'),
     ).toBeTruthy();
 
     expect(
