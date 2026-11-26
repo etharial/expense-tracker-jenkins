@@ -1,59 +1,371 @@
-# Pocket Ledger — Expense Tracker
+# Pocket Ledger - Expense Tracker
 
-A small React expense tracker built to demonstrate branch-aware Jenkins CI and a separate, build-number-driven CD job. Expenses are held in memory and reset when the page is refreshed.
+Pocket Ledger is a lightweight React expense tracker developed for the Software Quality Engineering final project.
 
-## GitHub repository and branches
+The project demonstrates automated testing, code coverage, branch-aware Jenkins continuous integration, SonarQube quality analysis, versioned artifacts, and parameterized Docker deployment.
 
-| Branch | Purpose | CI stages |
-| --- | --- | --- |
-| `main` | Stable, accepted release | Checkout, install and test, coverage, SonarQube analysis, quality gate, build, archive |
-| `develop` | Integration branch | Checkout, install and test, coverage, build |
-| `feature/<name>` | Individual feature work, e.g. `feature/category-filter` | Checkout, install and test, coverage |
+## Repository
 
-Use pull requests from `feature/*` to `develop`, then from `develop` to `main`. Only a successful `main` pipeline archives `release-bundle.tar.gz`; the CD job copies that artifact from the chosen `main` build.
+https://github.com/etharial/expense-tracker-jenkins
 
-After creating the GitHub repository, initialize and push the branches (replace the URL with your repository URL):
+## Application Features
 
-```sh
-git init -b main
-git add .
-git commit -m "Initial expense tracker"
-git remote add origin https://github.com/etharial/expense-tracker-jenkins.git
-git push -u origin main
-git switch -c develop
-git push -u origin develop
-git switch -c feature/category-filter
-git push -u origin feature/category-filter
-```
+- Record expenses with descriptions, amounts, categories, and dates.
+- Validate descriptions, amounts, categories, and calendar dates.
+- Calculate totals using integer cents.
+- Display the most recently added expenses.
+- Display validation errors and recover from invalid submissions.
+- Display an empty state when no expenses have been recorded.
 
-## Run locally
+The application uses USD and stores expenses in memory. Refreshing the page resets the expense list. A database is not required.
 
-Requirements: Node.js 20.19+ (or 22.12+) and npm.
+## Technology Stack
 
-```sh
-npm ci
-npm test
-npm run coverage
-npm run build
-npm run dev
-```
+| Technology | Purpose |
+| --- | --- |
+| React | User interface |
+| Vite | Development and production builds |
+| JavaScript | Application logic |
+| Vitest | Automated testing |
+| React Testing Library | Component interaction testing |
+| jsdom | Browser-like test environment |
+| V8 and LCOV | Coverage reporting |
+| GitHub | Version control |
+| Jenkins | CI/CD automation |
+| SonarQube | Code analysis and quality gates |
+| Docker | Containerized deployment |
+| Nginx | Production web server |
 
-The expense helpers validate descriptions, categories, dates, and positive amounts with at most two decimal places. Amounts are stored and totaled as integer cents to avoid floating-point currency errors.
+## Repository Structure
 
-## Jenkins CI setup
+    expense-tracker-jenkins/
+    |-- src/
+    |   |-- App.jsx
+    |   |-- expenses.js
+    |   |-- main.jsx
+    |   |-- styles.css
+    |-- tests/
+    |   |-- App.test.jsx
+    |   |-- expenses.test.js
+    |-- .gitignore
+    |-- Dockerfile
+    |-- Jenkinsfile
+    |-- Jenkinsfile.cd
+    |-- README.md
+    |-- index.html
+    |-- package.json
+    |-- package-lock.json
+    |-- sonar-project.properties
+    |-- vite.config.js
 
-1. Push `main`, `develop`, and at least one `feature/*` branch to GitHub.
-2. Install the **GitHub Branch Source** plugin. In Jenkins, create a **Multibranch Pipeline** and add a GitHub branch source for `https://github.com/etharial/expense-tracker-jenkins`. Configure GitHub credentials if the repository requires them, set the source's branch-discovery behavior to discover **all branches**, and set the script path to `Jenkinsfile`. Do not filter out `main`, `develop`, or `feature/*`.
-3. Configure the multibranch job to scan periodically (for example, every 5 minutes) so newly created branches are discovered. The Jenkinsfile also polls each discovered branch for changes every 5 minutes. For immediate push triggering, configure a GitHub repository webhook at `https://<your-jenkins-host>/github-webhook/` for push events, and ensure the Jenkins host is reachable from GitHub.
-4. Ensure the build agent has Git, Node.js 22.12+ (or 20.19+), and npm. Install/configure the SonarQube Scanner and Pipeline plugins; configure the Jenkins scanner tool as **`SonarScanner`** and the server installation as **`SonarQube`**.
-5. `sonar-project.properties` configures the project key and LCOV coverage path. Configure a SonarQube webhook to Jenkins for `waitForQualityGate`.
+## Local Development
 
-The branch pipeline runs the stages shown in the table: a failing `npm test` or coverage command stops that branch's pipeline. On `main`, a failed SonarQube quality gate aborts the pipeline before build and archive. Only `main` archives `release-bundle.tar.gz`.
+Node.js 24 is the verified local testing environment and configured Jenkins tool target.
 
-## Jenkins CD setup
+Clone the repository:
 
-1. Install the **Copy Artifact** plugin. Create a separate Jenkins Pipeline job pointing at this repository and set its script path to `Jenkinsfile.cd`.
-2. Run the CD job with `MAIN_BRANCH_JOB` set to the multibranch branch-job path ending in `/main` (default: `expense-tracker-jenkins/main`), `SOURCE_BUILD_NUMBER` set to the successful CI build number, and `DEPLOY_PORT` set to an available host port.
-3. The deployment agent must have Docker installed and permission to use its daemon. The job retrieves the selected main artifact, builds the included Dockerfile, and replaces the `expense-tracker` container on that agent. The application is then available at `http://<deployment-agent>:<DEPLOY_PORT>`.
+    git clone https://github.com/etharial/expense-tracker-jenkins.git
+    cd expense-tracker-jenkins
 
-No credentials or environment-specific secrets are stored in this repository. Add GitHub credentials through Jenkins credentials and restrict access to the deployment job as appropriate.
+Install dependencies:
+
+    npm ci
+
+Start the development server:
+
+    npm run dev
+
+Open the local URL printed by Vite.
+
+## Automated Testing
+
+Execute all automated tests:
+
+    npm test
+
+Generate code coverage:
+
+    npm run coverage
+
+The LCOV report is generated at:
+
+    coverage/lcov.info
+
+The expanded test suite contains 57 tests:
+
+- 46 expense calculation and validation tests.
+- 11 React application tests.
+
+Tests cover valid inputs, invalid inputs, boundary conditions, currency calculations, calendar validation, form interactions, dynamic totals, and error recovery.
+
+### Verified Local Results
+
+| Metric | Original baseline | Expanded suite |
+| --- | ---: | ---: |
+| Passing tests | 9 | 57 |
+| Statement coverage | 67.39% | 100% |
+| Branch coverage | 78.26% | 100% |
+| Function coverage | 63.63% | 100% |
+| Line coverage | 68.18% | 100% |
+
+These results were recorded locally on November 26, 2026.
+
+Coverage applies to files included in the Vitest configuration. SonarQube overall coverage and quality gate results must be independently verified.
+
+Coverage does not guarantee defect-free software.
+
+## Production Build
+
+Generate the compiled application:
+
+    npm run build
+
+The production files are generated in dist/.
+
+Preview the production build:
+
+    npm exec vite -- preview
+
+## Git Branch Strategy
+
+| Branch | Purpose |
+| --- | --- |
+| main | Stable and accepted releases |
+| develop | Integration of feature changes |
+| feature/* | Individual development work |
+
+Use reviewed pull requests to integrate feature changes into develop and develop into main.
+
+## Jenkins Continuous Integration
+
+Create a Multibranch Pipeline named expense-tracker-jenkins.
+
+Configure the GitHub repository as its branch source and use Jenkinsfile as its script path.
+
+Enable branch discovery for main, develop, and feature branches.
+
+Configure periodic multibranch scanning to discover newly created branches.
+
+The Jenkinsfile also polls discovered branches approximately every five minutes.
+
+### Required Jenkins Plugins
+
+- Git
+- GitHub Branch Source
+- Pipeline
+- Workflow Multibranch
+- NodeJS
+- SonarQube Scanner for Jenkins
+- Copy Artifact
+- Credentials
+
+### Managed Tools
+
+| Tool | Configuration name |
+| --- | --- |
+| Node.js 24 | NodeJS-24 |
+| SonarQube Scanner | SonarScanner |
+| SonarQube server | SonarQube |
+
+The Linux build agent requires Git, shell utilities, and tar.
+
+The deployment agent requires Docker CLI access and permission to use the Docker daemon.
+
+### Branch-Specific Pipeline Stages
+
+| Stage | feature/* | develop | main |
+| --- | --- | --- | --- |
+| Checkout | Yes | Yes | Yes |
+| Install and Test | Yes | Yes | Yes |
+| Coverage | Yes | Yes | Yes |
+| SonarQube Analysis | No | No | Yes |
+| Quality Gate | No | No | Yes |
+| Build | No | Yes | Yes |
+| Archive Artifact | No | No | Yes |
+
+A failed automated test stops the affected pipeline.
+
+A failed main-branch quality gate prevents the production build and archive stages from completing.
+
+## SonarQube Configuration
+
+Project key:
+
+    expense-tracker-jenkins
+
+Configuration file:
+
+    sonar-project.properties
+
+SonarQube imports coverage/lcov.info generated by Vitest.
+
+Configure and assign a project-specific quality gate requiring at least 80 percent overall coverage.
+
+Evaluate overall code coverage, not only coverage on new code.
+
+Only the main branch is analyzed.
+
+Confirm Community Build compatibility with the instructor before relying on the main-branch Multibranch integration.
+
+Internal SonarQube server URL:
+
+    http://sonarqube:9000
+
+SonarQube webhook URL:
+
+    http://jenkins:8080/sonarqube-webhook/
+
+These internal URLs require Jenkins and SonarQube to share a Docker network.
+
+Store authentication tokens in Jenkins credentials, never in the GitHub repository.
+
+## Versioned CI Artifacts
+
+After the main branch passes its tests and quality gate, Jenkins generates a production build.
+
+The archived package contains:
+
+    dist/
+    Dockerfile
+
+The archive filename includes the selected main CI build number:
+
+    expense-tracker-<CI_BUILD_NUMBER>.tar.gz
+
+Example:
+
+    expense-tracker-12.tar.gz
+
+The archive is stored in the main branch Jenkins job and fingerprinted.
+
+The archive does not include node_modules or original React source files.
+
+## Jenkins Continuous Delivery
+
+Create a separate Pipeline job named:
+
+    Pocket-Ledger-CD
+
+Configure the job to load its script from the repository main branch.
+
+Script path:
+
+    Jenkinsfile.cd
+
+### Deployment Parameters
+
+| Parameter | Description |
+| --- | --- |
+| CI_BUILD_NUMBER | Successful main CI build number |
+| ENVIRONMENT | DEV, TEST, ACC, or PROD |
+
+The source CI job is:
+
+    expense-tracker-jenkins/main
+
+The CD pipeline retrieves the selected CI artifact, extracts its compiled application and Dockerfile, builds a Docker image, deploys the selected environment, and verifies its HTTP response.
+
+The CD pipeline does not rebuild the React source.
+
+### Deployment Environments
+
+| Environment | Container | Port | Local URL |
+| --- | --- | ---: | --- |
+| DEV | pocket-ledger-dev | 3001 | http://localhost:3001 |
+| TEST | pocket-ledger-test | 3002 | http://localhost:3002 |
+| ACC | pocket-ledger-acc | 3003 | http://localhost:3003 |
+| PROD | pocket-ledger-prod | 3004 | http://localhost:3004 |
+
+The assigned ports must be available on the Docker host.
+
+Docker images are tagged using the selected CI build number.
+
+Example:
+
+    pocket-ledger:12
+
+Containers include project ownership, environment, and CI build labels.
+
+The pipeline refuses to replace containers belonging to unrelated projects.
+
+Redeploying to the same environment may briefly interrupt service. Automatic rollback is not implemented.
+
+The four environments represent classroom demonstration environments on one Docker host.
+
+## Dependency Security
+
+Run the dependency audit:
+
+    npm audit
+
+The local audit on November 26, 2026 reported zero vulnerabilities.
+
+Run the audit again before final submission because vulnerability reports may change.
+
+## Failure and Recovery Demonstration
+
+The planned demonstration uses a controlled failing test on a feature branch.
+
+1. Introduce an intentionally incorrect test assertion.
+2. Trigger the feature-branch Jenkins CI pipeline.
+3. Capture the failed test and stopped pipeline.
+4. Correct the assertion.
+5. Trigger another CI build.
+6. Capture the successful rerun.
+
+Record the actual failing and corrected Jenkins build numbers.
+
+The intentionally failing assertion must not remain in the submitted application.
+
+## Troubleshooting
+
+### Node.js is not found in Jenkins
+
+Verify that the NodeJS plugin and NodeJS-24 managed tool are configured.
+
+### SonarQube coverage is missing
+
+Verify that coverage/lcov.info exists and that report paths match the analyzed source files.
+
+### Quality gate timeout
+
+Verify Jenkins connectivity, SonarQube task status, and webhook configuration.
+
+### Artifact retrieval fails
+
+Verify the selected CI build number, source job, artifact filename, and Copy Artifact permissions.
+
+### Docker deployment fails
+
+Verify that Docker Desktop is running, Jenkins can access the Docker daemon, and the selected port is available.
+
+## Submission Evidence Checklist
+
+- [ ] GitHub repository link and required project files.
+- [ ] Jenkins Multibranch Pipeline showing required branches.
+- [ ] Successful feature-branch test run.
+- [ ] Successful develop test and build.
+- [ ] Successful main CI pipeline.
+- [ ] SonarQube dashboard and imported coverage.
+- [ ] Configured overall coverage quality gate and result.
+- [ ] Reviewed SonarQube finding or instructor-approved example.
+- [ ] Versioned artifact and CI build number.
+- [ ] Failed Pipeline demonstration.
+- [ ] Corrected and successful Pipeline rerun.
+- [ ] CD parameter selection.
+- [ ] Successful Docker deployment.
+- [ ] Deployed application in a browser.
+- [ ] Final npm audit result.
+- [ ] Five-to-eight-minute recorded demonstration.
+
+## Repository Security
+
+Do not commit node_modules, coverage, dist, passwords, environment secrets, or access tokens.
+
+Use Jenkins credentials for authentication and restrict access to deployment jobs.
+
+## Project Status
+
+The application and expanded automated tests have passed local verification.
+
+Live Jenkins execution, SonarQube quality gate acceptance, artifact retrieval, and Docker deployment must still be verified before final submission.

@@ -1,59 +1,138 @@
 pipeline {
     agent any
 
-    parameters {
-        string(
-            name: 'MAIN_BRANCH_JOB',
-            defaultValue: 'expense-tracker-jenkins/main',
-            description: 'Jenkins multibranch job path ending in /main'
-        )
-        string(
-            name: 'SOURCE_BUILD_NUMBER',
-            defaultValue: '',
-            description: 'Successful main-branch CI build number to deploy'
-        )
-        string(
-            name: 'DEPLOY_PORT',
-            defaultValue: '8080',
-            description: 'Host port that serves the application'
-        )
-    }
-
     options {
         timestamps()
         disableConcurrentBuilds()
+        skipDefaultCheckout(true)
+    }
+
+    parameters {
+        string(
+            name: 'CI_BUILD_NUMBER',
+            defaultValue: '',
+            description: 'Successful main-branch CI build number to deploy'
+        )
+
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['DEV', 'TEST', 'ACC', 'PROD'],
+            description: 'Target deployment environment'
+        )
+    }
+
+    environment {
+        MAIN_BRANCH_JOB = 'expense-tracker-jenkins/main'
     }
 
     stages {
         stage('Validate selection') {
             steps {
                 script {
-                    if (!(params.MAIN_BRANCH_JOB ==~ /.+\/main/)) {
-                        error 'MAIN_BRANCH_JOB must identify a multibranch job ending in /main.'
+                    if (!(params.CI_BUILD_NUMBER ==~ /[1-9][0-9]*/)) {
+                        error 'CI_BUILD_NUMBER must be a positive integer.'
                     }
-                    if (!(params.SOURCE_BUILD_NUMBER ==~ /[1-9][0-9]*/)) {
-                        error 'SOURCE_BUILD_NUMBER must be a positive build number.'
+
+                    def deploymentPorts = [
+                        DEV: '3001',
+                        TEST: '3002',
+                        ACC: '3003',
+                        PROD: '3004'
+                    ]
+
+                    if (!deploymentPorts.containsKey(params.ENVIRONMENT)) {
+                        error 'Invalid deployment environment.'
                     }
-                    if (!(params.DEPLOY_PORT ==~ /[0-9]{1,5}/)
-                        || params.DEPLOY_PORT.toInteger() < 1
-                        || params.DEPLOY_PORT.toInteger() > 65535) {
-                        error 'DEPLOY_PORT must be between 1 and 65535.'
-                    }
+
+                    env.DEPLOY_PORT =
+                        deploymentPorts[params.ENVIRONMENT]
+
+                    env.CONTAINER_NAME =
+                        "pocket-ledger-${params.ENVIRONMENT.toLowerCase()}"
+
+                    env.IMAGE_NAME =
+                        "pocket-ledger:${params.CI_BUILD_NUMBER}"
+
+                    env.ARTIFACT_NAME =
+                        "expense-tracker-${params.CI_BUILD_NUMBER}.tar.gz"
+
+                    echo "Selected CI build: ${params.CI_BUILD_NUMBER}"
+                    echo "Selected environment: ${params.ENVIRONMENT}"
+                    echo "Source CI job: ${env.MAIN_BRANCH_JOB}"
+                    echo "CD build number: ${env.BUILD_NUMBER}"
+                    echo "Artifact: ${env.ARTIFACT_NAME}"
+                    echo "Container: ${env.CONTAINER_NAME}"
+                    echo "Deployment port: ${env.DEPLOY_PORT}"
                 }
+            }
+        }
+
+        stage('Prepare workspace') {
+            steps {
+                deleteDir()
             }
         }
 
         stage('Retrieve accepted main artifact') {
             steps {
                 copyArtifacts(
-                    projectName: params.MAIN_BRANCH_JOB,
-                    selector: specific(params.SOURCE_BUILD_NUMBER),
-                    filter: 'release-bundle.tar.gz',
+                    projectName: env.MAIN_BRANCH_JOB,
+                    selector: specific(params.CI_BUILD_NUMBER),
+                    filter: env.ARTIFACT_NAME,
                     target: 'artifact',
                     fingerprintArtifacts: true
                 )
-                sh 'mkdir -p deploy-context && tar -xzf artifact/release-bundle.tar.gz -C deploy-context'
-                sh 'test -f deploy-context/Dockerfile && test -d deploy-context/dist'
+
+                sh '''
+                    set -eu
+
+                    archive="artifact/${ARTIFACT_NAME}"
+
+                    test -s "$archive"
+
+                    echo "Retrieved CI artifact:"
+                    ls -lh "$archive"
+
+                    tar -tzf "$archive"
+                '''
+            }
+        }
+
+        stage('Extract artifact') {
+            steps {
+                sh '''
+                    set -eu
+
+                    mkdir -p deploy-context
+
+                    tar -xzf "artifact/${ARTIFACT_NAME}" \
+                        -C deploy-context
+
+                    test -f deploy-context/Dockerfile
+                    test -s deploy-context/dist/index.html
+
+                    echo "Deployment context verified."
+                    ls -la deploy-context
+                '''
+            }
+        }
+
+        stage('Build Docker image') {
+            steps {
+                sh '''
+                    set -eu
+
+                    docker version
+
+                    docker build \
+                        --label "com.pocketledger.ci-build=${CI_BUILD_NUMBER}" \
+                        -t "$IMAGE_NAME" \
+                        deploy-context
+
+                    docker image inspect "$IMAGE_NAME" >/dev/null
+
+                    echo "Docker image ready: $IMAGE_NAME"
+                '''
             }
         }
 
@@ -61,20 +140,89 @@ pipeline {
             steps {
                 sh '''
                     set -eu
-                    image="expense-tracker:${SOURCE_BUILD_NUMBER}"
-                    docker build -t "$image" deploy-context
 
-                    if docker container inspect expense-tracker >/dev/null 2>&1; then
-                        docker rm -f expense-tracker
+                    if docker container inspect "$CONTAINER_NAME" \
+                        >/dev/null 2>&1; then
+
+                        owner=$(docker inspect \
+                            --format '{{index .Config.Labels "com.pocketledger.project"}}' \
+                            "$CONTAINER_NAME")
+
+                        if [ "$owner" != "expense-tracker-jenkins" ]; then
+                            echo "Container belongs to another project."
+                            echo "Refusing to replace: $CONTAINER_NAME"
+                            exit 1
+                        fi
+
+                        echo "Replacing existing Pocket Ledger container."
+                        docker rm -f "$CONTAINER_NAME"
                     fi
 
                     docker run -d \
-                        --name expense-tracker \
+                        --name "$CONTAINER_NAME" \
                         --restart unless-stopped \
+                        --label "com.pocketledger.project=expense-tracker-jenkins" \
+                        --label "com.pocketledger.environment=${ENVIRONMENT}" \
+                        --label "com.pocketledger.ci-build=${CI_BUILD_NUMBER}" \
                         -p "${DEPLOY_PORT}:80" \
-                        "$image"
+                        "$IMAGE_NAME"
                 '''
             }
+        }
+
+        stage('Verify deployment') {
+            steps {
+                sh '''
+                    set -eu
+
+                    attempt=1
+
+                    until docker exec "$CONTAINER_NAME" \
+                        wget -q -O /dev/null http://127.0.0.1/; do
+
+                        if [ "$attempt" -ge 15 ]; then
+                            docker logs --tail 50 "$CONTAINER_NAME"
+                            echo "Application HTTP verification failed."
+                            exit 1
+                        fi
+
+                        attempt=$((attempt + 1))
+                        sleep 2
+                    done
+
+                    running=$(docker inspect \
+                        --format '{{.State.Running}}' \
+                        "$CONTAINER_NAME")
+
+                    test "$running" = "true"
+
+                    docker port "$CONTAINER_NAME" 80/tcp
+
+                    docker ps \
+                        --filter "name=^/${CONTAINER_NAME}$"
+
+                    echo "Deployment verification passed."
+                '''
+
+                echo "Selected CI build: ${params.CI_BUILD_NUMBER}"
+                echo "Environment: ${params.ENVIRONMENT}"
+                echo "Application URL: http://localhost:${env.DEPLOY_PORT}"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment completed successfully."
+            echo "CI build ${params.CI_BUILD_NUMBER} deployed to ${params.ENVIRONMENT}."
+        }
+
+        failure {
+            echo "Deployment failed. Review the failed stage."
+        }
+
+        aborted {
+            echo "Deployment aborted."
         }
     }
 }
