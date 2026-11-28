@@ -336,15 +336,15 @@ The deployment agent requires Docker CLI access and permission to access the Doc
 
 ### Branch-Specific Pipeline Behavior
 
-| Stage | feature/* | develop | main |
-| --- | --- | --- | --- |
-| Checkout | Yes | Yes | Yes |
-| Install and Test | Yes | Yes | Yes |
-| Coverage | Yes | Yes | Yes |
-| SonarQube Analysis | No | No | Yes |
-| Quality Gate | No | No | Yes |
-| Build | No | Yes | Yes |
-| Archive Artifact | No | No | Yes |
+| Stage | feature/category-filter | Other feature/* | develop | main |
+| --- | --- | --- | --- | --- |
+| Checkout | Yes | Yes | Yes | Yes |
+| Install and Test | Yes | Yes | Yes | Yes |
+| Coverage | Yes | Yes | Yes | Yes |
+| SonarQube Analysis | Yes | No | No | Yes |
+| Quality Gate | Yes, if analysis succeeds | No | No | Yes |
+| Build | No | No | Yes | Yes |
+| Archive Artifact | No | No | No | Yes |
 
 A failed automated test stops the affected pipeline.
 
@@ -395,7 +395,7 @@ Project-specific Jenkins webhook:
 
 Jenkins and SonarQube share the quality-lab Docker network.
 
-Only the main branch is analyzed by SonarQube.
+The `main` and `feature/category-filter` branches are configured for SonarQube analysis. The feature scan explicitly requests branch analysis; the configured SonarQube Community Build does not support non-main branch analysis, so that feature pipeline is expected to fail in the SonarQube Analysis stage. The application's category filter and tests remain correct. Main continues to run analysis and gate checks before creating a release artifact.
 
 ### Quality Gate Results
 

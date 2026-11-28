@@ -49,7 +49,10 @@ pipeline {
 
         stage('SonarQube Analysis') {
             when {
-                branch 'main'
+                anyOf {
+                    branch 'main'
+                    branch 'feature/category-filter'
+                }
             }
 
             steps {
@@ -58,7 +61,11 @@ pipeline {
 
                     withEnv(["PATH+SONAR=${scannerHome}/bin"]) {
                         withSonarQubeEnv('SonarQube') {
-                            sh 'sonar-scanner'
+                            if (env.BRANCH_NAME == 'feature/category-filter') {
+                                sh 'sonar-scanner -Dsonar.branch.name="$BRANCH_NAME"'
+                            } else {
+                                sh 'sonar-scanner'
+                            }
                         }
                     }
                 }
@@ -67,7 +74,10 @@ pipeline {
 
         stage('Quality Gate') {
             when {
-                branch 'main'
+                anyOf {
+                    branch 'main'
+                    branch 'feature/category-filter'
+                }
             }
 
             steps {
