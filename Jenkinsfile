@@ -9,7 +9,6 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
         skipDefaultCheckout(true)
-        copyArtifactPermission('Pocket-Ledger-CD')
     }
 
     triggers {
@@ -20,6 +19,12 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        properties([copyArtifactPermission('Pocket-Ledger-CD')])
+                    }
+                }
 
                 echo "Branch: ${env.BRANCH_NAME}"
                 echo "CI build number: ${env.BUILD_NUMBER}"
