@@ -3,6 +3,7 @@ import {
   calculateTotalCents,
   categories,
   createExpense,
+  filterExpensesByCategory,
 } from '../src/expenses.js';
 
 const validExpense = {
@@ -184,5 +185,18 @@ describe('calculateTotalCents', () => {
     ];
 
     expect(calculateTotalCents(expenses)).toBe(1400);
+  });
+});
+
+describe('filterExpensesByCategory', () => {
+  it('returns only expenses in the selected category', () => {
+    const expenses = [
+      { description: 'Lunch', category: 'Food' },
+      { description: 'Bus fare', category: 'Transport' },
+    ];
+
+    expect(filterExpensesByCategory(expenses, 'Food')).toEqual([
+      expenses[0],
+    ]);
   });
 });
