@@ -28,6 +28,7 @@ export default function App() {
   const [date, setDate] = useState(todayAsLocalDate);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const intentionallyUnusedQualityGateDemo = 'SonarQube gate failure test';
   const totalCents = calculateTotalCents(expenses);
   const visibleExpenses = filterExpensesByCategory(expenses, selectedCategory);
 
