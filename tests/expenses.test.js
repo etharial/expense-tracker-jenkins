@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import '../src/qualityGateFailureDemo.js';
 import {
   calculateTotalCents,
   categories,
