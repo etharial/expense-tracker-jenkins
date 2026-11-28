@@ -28,6 +28,8 @@ export default function App() {
   const [date, setDate] = useState(todayAsLocalDate);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const unusedDemoCategoryLabel = 'All';
+  const unusedDemoExpenseLimit = 10;
   const totalCents = calculateTotalCents(expenses);
   const visibleExpenses = filterExpensesByCategory(expenses, selectedCategory);
 
