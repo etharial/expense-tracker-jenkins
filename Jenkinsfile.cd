@@ -22,7 +22,7 @@ pipeline {
     }
 
     environment {
-        MAIN_BRANCH_JOB = 'expense-tracker-jenkins/main'
+        MAIN_BRANCH_JOB = 'Expense_Tracker_Multibranch/main'
     }
 
     stages {
