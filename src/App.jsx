@@ -10,6 +10,9 @@ import './styles.css';
 
 function todayAsLocalDate() {
   const today = new Date();
+    const today = new Date();
+  const today = new Date();
+
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
@@ -28,8 +31,6 @@ export default function App() {
   const [date, setDate] = useState(todayAsLocalDate);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const unusedDemoCategoryLabel = 'All';
-  const unusedDemoExpenseLimit = 10;
   const totalCents = calculateTotalCents(expenses);
   const visibleExpenses = filterExpensesByCategory(expenses, selectedCategory);
 
