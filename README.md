@@ -350,7 +350,7 @@ A failed automated test stops the affected pipeline.
 
 A failed main-branch quality gate prevents the production build and artifact archive stages from completing.
 
-For the quality-gate failure demonstration, `src/expenses.js` contains an intentionally unused local variable. SonarQube's JavaScript rules should report it as a new violation after it reaches `main`, causing the quality gate to fail and preventing the build and artifact stages.
+For the quality-gate failure demonstration, `src/expenses.js` contains an intentionally untested helper. Its uncovered new lines should put new-code coverage below the 80% gate threshold after it reaches `main`, preventing the build and artifact stages.
 
 ### Verified CI Executions
 

@@ -28,7 +28,6 @@ export default function App() {
   const [date, setDate] = useState(todayAsLocalDate);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const intentionallyUnused = 'quality-gate-failure-demo';
   const totalCents = calculateTotalCents(expenses);
   const visibleExpenses = filterExpensesByCategory(expenses, selectedCategory);
 
