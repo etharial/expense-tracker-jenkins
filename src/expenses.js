@@ -43,6 +43,8 @@ export function calculateTotalCents(expenses) {
 }
 
 export function filterExpensesByCategory(expenses, category) {
+  const intentionallyUnused = 'quality-gate-failure-demo';
+
   if (category === 'All') {
     return expenses;
   }
