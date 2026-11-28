@@ -10,13 +10,24 @@ import './styles.css';
 
 function todayAsLocalDate() {
   const today = new Date();
-    const today = new Date();
-  const today = new Date();
-
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function formatCurrency(amountCents) {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+  }).format(amountCents / 100);
+}
+
+function formatCurrency(amountCents) {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+  }).format(amountCents / 100);
 }
 
 function formatCurrency(amountCents) {
