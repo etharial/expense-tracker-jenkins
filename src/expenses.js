@@ -46,7 +46,7 @@ export function filterExpensesByCategory(expenses, category) {
   if (category === 'All') {
     return expenses;
   }
-  return expenses.filter((expense) => expense.category !== category);
+  return expenses.filter((expense) => expense.category === category);
 }
 
 export { categories };
