@@ -176,11 +176,32 @@ h1 {
 
 .list-heading {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 16px;
 }
 
 .list-heading h2 {
   margin-bottom: 0;
+}
+
+.filter-control {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 6px;
+  color: #485750;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.filter-control select {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid #dfe6e0;
+  border-radius: 9px;
+  background: #fbfcfb;
+  color: #1c2925;
+  font: inherit;
 }
 
 .empty-state {
@@ -255,5 +276,10 @@ h1 {
   .expense-form,
   .expense-list {
     padding: 21px;
+  }
+
+  .list-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
