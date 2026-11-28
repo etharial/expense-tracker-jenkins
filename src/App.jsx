@@ -23,25 +23,12 @@ function formatCurrency(amountCents) {
   }).format(amountCents / 100);
 }
 
-function formatCurrency(amountCents) {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-  }).format(amountCents / 100);
-}
-
-function formatCurrency(amountCents) {
-  return new Intl.NumberFormat('en-PH', {
-    style: 'currency',
-    currency: 'PHP',
-  }).format(amountCents / 100);
-}
-
 export default function App() {
   const [expenses, setExpenses] = useState([]);
   const [date, setDate] = useState(todayAsLocalDate);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const intentionallyUnused = 'quality-gate-failure-demo';
   const totalCents = calculateTotalCents(expenses);
   const visibleExpenses = filterExpensesByCategory(expenses, selectedCategory);
 
