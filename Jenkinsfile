@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'NodeJS-24'
+    }
+
     options {
         timestamps()
         disableConcurrentBuilds()
@@ -15,12 +19,22 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        properties([copyArtifactPermission('Pocket-Ledger-CD')])
+                    }
+                }
+
+                echo "Branch: ${env.BRANCH_NAME}"
+                echo "CI build number: ${env.BUILD_NUMBER}"
             }
         }
 
         stage('Install and Test') {
             steps {
                 sh 'node --version'
+                sh 'npm --version'
                 sh 'npm ci'
                 sh 'npm test'
             }
@@ -29,6 +43,7 @@ pipeline {
         stage('Coverage') {
             steps {
                 sh 'npm run coverage'
+                sh 'test -s coverage/lcov.info'
             }
         }
 
@@ -36,9 +51,11 @@ pipeline {
             when {
                 branch 'main'
             }
+
             steps {
                 script {
                     def scannerHome = tool 'SonarScanner'
+
                     withEnv(["PATH+SONAR=${scannerHome}/bin"]) {
                         withSonarQubeEnv('SonarQube') {
                             sh 'sonar-scanner'
@@ -52,6 +69,7 @@ pipeline {
             when {
                 branch 'main'
             }
+
             steps {
                 timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
@@ -66,8 +84,10 @@ pipeline {
                     branch 'main'
                 }
             }
+
             steps {
                 sh 'npm run build'
+                sh 'test -s dist/index.html'
             }
         }
 
@@ -75,11 +95,44 @@ pipeline {
             when {
                 branch 'main'
             }
+
             steps {
-                sh 'tar -czf release-bundle.tar.gz dist Dockerfile'
-                archiveArtifacts artifacts: 'release-bundle.tar.gz', fingerprint: true
+                sh '''
+                    set -eu
+
+                    artifact="expense-tracker-${BUILD_NUMBER}.tar.gz"
+
+                    test -f Dockerfile
+                    test -s dist/index.html
+
+                    tar -czf "$artifact" dist Dockerfile
+
+                    test -s "$artifact"
+
+                    echo "Created CI artifact: $artifact"
+                    tar -tzf "$artifact"
+                '''
+
+                archiveArtifacts(
+                    artifacts: "expense-tracker-${env.BUILD_NUMBER}.tar.gz",
+                    fingerprint: true,
+                    onlyIfSuccessful: true
+                )
             }
         }
     }
 
+    post {
+        success {
+            echo "CI passed for ${env.BRANCH_NAME}, build ${env.BUILD_NUMBER}."
+        }
+
+        failure {
+            echo "CI failed. Review the failed stage in Console Output."
+        }
+
+        aborted {
+            echo "CI build aborted."
+        }
+    }
 }

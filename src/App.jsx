@@ -17,9 +17,9 @@ function todayAsLocalDate() {
 }
 
 function formatCurrency(amountCents) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-PH', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'PHP',
   }).format(amountCents / 100);
 }
 
@@ -78,7 +78,7 @@ export default function App() {
           </label>
           <div className="form-row">
             <label>
-              Amount (USD)
+              Amount (PHP)
               <input
                 name="amount"
                 type="number"
